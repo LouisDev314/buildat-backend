@@ -2,6 +2,10 @@
 
 This document owns conceptual relationships and invariants, not a database or endpoint specification. All domain implementation is planned. Rules here are accepted direction unless marked proposed or unresolved; [DECISIONS.md](DECISIONS.md) tracks remaining choices.
 
+## Identity boundary (accepted direction, not implemented)
+
+Supabase owns identity/session lifecycle. Buildat will own an internal issuer/subject mapping and current account standing independently of public profiles; email and client-supplied owner IDs are not authoritative identity keys. Protected operations must check standing and object permissions. Restricted/deleted mappings must not automatically recreate active accounts. Full retention/recovery, owner transfer, manager hierarchy and capacity policy remain deferred; no account or domain tables are added by the foundation. See revised decisions D14–D21 in [DECISIONS.md](DECISIONS.md).
+
 ## Concepts and relationships
 
 | Concept | Meaning and relationships |
@@ -24,7 +28,7 @@ This document owns conceptual relationships and invariants, not a database or en
 
 - A user edits their own profile. Account administration requires explicit privileged authority; profile ownership does not confer project authority.
 - Every project has an accountable owner. Ownership transfer, co-ownership and delegated management are unresolved; do not infer them from membership or a role title. A project cannot be left without an accountable owner through ordinary departure.
-- The owner and explicitly authorized managers control project publication, roles, application decisions and team administration. Members receive only the rights their project authority grants. The exact permission matrix is a backend-foundation prerequisite.
+- The owner and explicitly authorized managers control project publication, roles, application decisions and team administration. Members receive only the rights their project authority grants. The action matrix must be agreed at each dependent feature gate; this foundation adds no domain permissions.
 - Applicants control submission and pending withdrawal. Only the applicant and authorized project managers may read private application content, except narrowly authorized moderation access.
 - Members may submit attributable contributions under an agreed project policy. Project acknowledgment requires an authorized reviewer. Authors cannot impersonate another contributor or unilaterally grant their own work independent verification.
 - Moderators can inspect reports and act only within defined moderation authority. Project owners do not automatically see reporter identities or private reports about their projects.

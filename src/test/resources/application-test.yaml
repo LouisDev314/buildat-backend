@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    # ServiceConnection replaces these unusable values; never fall back to hosted credentials.
+    url: jdbc:postgresql://127.0.0.1:1/unused
+    username: unused
+    password: unused
+  flyway:
+    enabled: true

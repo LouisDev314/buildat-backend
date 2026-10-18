@@ -46,6 +46,23 @@ Initial register dated 2026-10-16. **Accepted** means agreed direction, not impl
 | F03 | 2026-10-16 | deferred | Financial-return investment, equity or revenue-share offerings; require a separate regulated-product assessment and authorization. Never treat as ordinary rewards. |
 | F04 | 2026-10-16 | deferred | Independent verification service and advanced reputation/matching. Establish evidence standards and real collaboration data first; no automatic endorsement or leaderboard. |
 
+## Revised foundation decisions — 2026-10-18
+
+The user requested implementation of the revised backend-foundation plan. Its statement that it was a planning-only deliverable describes the prior document; the current request authorizes repository implementation of its first milestone. Later stages remain staged work, not authorization for provider changes or feature implementation.
+
+| ID | Status | Decision and supersession |
+| --- | --- | --- |
+| D14 | accepted | Supabase is the sole Auth/session provider; Spring locally validates access JWTs and authoritative Buildat standing on protected operations. Supersedes P01's provider question; exact Auth configuration, token shape and action matrices remain pending. See [ARCHITECTURE.md](ARCHITECTURE.md). No Auth implementation in phase 1. |
+| D15 | accepted; version confirmed | Normal development uses dedicated Supabase PostgreSQL; automated tests use isolated PostgreSQL Testcontainers matching the user-verified hosted major, with a minor tag/digest. No mandatory local PostgreSQL/Compose. Supersedes the setup portion of P03; user confirmed hosted 17.11 on 2026-10-18 and tests pin `postgres:17.11`; hosted history remains unresolved. |
+| D16 | accepted | Preserve V1 unchanged. Hosted migration execution is separate and user-operated, disabled at ordinary startup; tests enable Flyway. Hibernate validates, open-in-view remains disabled. No automatic clean, repair, baseline or history relocation. Extends D06. |
+| D17 | accepted | Application success JSON uses requestId/data; errors use RFC 9457 with stable code/requestId, safe details and protocol headers. Correlation is server-generated before Security. Supersedes P04's envelope/error question; pagination remains deferred. Success advice and springdoc wait for the first real JSON API. |
+| D18 | accepted | Foundation denies all routes except exact safe GET/HEAD liveness/readiness probes; readiness includes DB, liveness excludes dependencies. No form/Basic/session login. Docker-free unit tests and mandatory container/HTTP integration tests are separate Maven phases. |
+| D19 | accepted; implementation deferred | Frontend uses Next.js, TypeScript, official Supabase SSR integration, Axios and TanStack Query. Resend handles later transactional email, initially via Supabase SMTP. Frontend location/package versions remain undecided. |
+| D20 | accepted; compute deferred | Northflank Sandbox is disposable testing; AWS is future alpha/production, compute/TLS undecided. User owns providers, hosted DB actions and deployments. No cloud, deployment, Dockerfile or CI scope in this milestone. Partially supersedes P11. |
+| D21 | deferred | Transfer deadlines/cooldowns, capacity/multiple roles/reapplication, role-closure behavior, moderation, deletion/retention and evidence policy require decisions at their feature gates. P05 remains a historical proposal, not accepted uniqueness/capacity semantics. No numerical defaults or domain tables in phase 1. |
+
+Historical P01/P03/P04/P11 entries above are retained for rationale; D14–D20 supersede the portions explicitly named. Remaining action-level permissions in P02 are resolved per feature rather than as a speculative universal permission engine. Provider JWT revocation/deletion has a window until token expiry; account standing checks must fail closed if Buildat DB is unavailable. See the [runbook](FOUNDATION.md).
+
 ## Existing-document conflicts
 
-No conflicting user-authored product/planning decisions were found during inspection. The prior README title identified the backend; it is retained as the introduction's context. Generated HELP.md remains untouched. Reassess conflicts when additional documentation or external decisions are supplied.
+No conflicts were found during the original documentation inspection. The revised plan now supersedes earlier unresolved setup/Auth/API proposals as recorded above. The prior README title identified the backend; it is retained as the introduction's context. Generated HELP.md remains untouched. Reassess conflicts when additional documentation or external decisions are supplied.

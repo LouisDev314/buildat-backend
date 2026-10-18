@@ -1,57 +1,29 @@
 # Buildat backend
 
-Buildat is a project-first collaboration network, initially for indie-game development. Creators publish credible projects and recruit for defined roles; builders find suitable work, join teams and build a history of meaningful contributions. AI is an optional assistant for scoping, role descriptions and matching, not the core product.
+Buildat is a project-first collaboration network, initially for indie-game development. Creators recruit for defined roles; builders join teams and build a history of meaningful contributions. Product features remain planned.
 
-This repository contains the early `buildat-server` backend foundation. Product capabilities described in the docs are planned unless explicitly identified as implemented. There are no controllers, domain entities, repositories or frontend sources in the inspected tree.
+This Maven backend targets Java 25 and Spring Boot 4.1.1 with MVC, validation, Security, JPA, PostgreSQL, Flyway and Actuator. It now has explicit route denial, safe health probes, request correlation and Problem Details. No Auth integration, domain entities, application API, frontend or deployment configuration is implemented.
 
-## Stack
+## Development and verification
 
-Observed on 2026-10-16 in [pom.xml](pom.xml) and the [wrapper configuration](.mvn/wrapper/maven-wrapper.properties):
+Normal development uses a dedicated Supabase PostgreSQL project. No local PostgreSQL installation or Compose stack is required. Automated database tests use disposable PostgreSQL Testcontainers and never require Supabase credentials.
 
-| Component | Repository evidence |
-| --- | --- |
-| Java | Target version 25 |
-| Spring Boot | Parent 4.1.1 |
-| Maven | Wrapper distribution 3.9.16; wrapper 3.3.4 |
-| Web and validation | Spring MVC and validation starters |
-| Persistence | Spring Data JPA/Hibernate, PostgreSQL runtime driver, Flyway with PostgreSQL support |
-| Security and operations | Spring Security and Actuator starters |
-| Tests | Boot test starters and one JUnit Jupiter context-load test; no Testcontainers dependency |
+Prerequisites: Java 25; wrapper-selected Maven 3.9.16 (downloads when uncached); a working Docker-compatible engine for integration tests; and PostgreSQL test image downloads when uncached. The hosted version was confirmed as 17.11. On POSIX, invoke the non-executable checked-in wrapper through `sh`.
 
-The declared Java and Boot versions match the intended backend stack. Dependency versions other than the parent and wrapper are managed through Maven and have not been resolved during this documentation task. PostgreSQL server version is unspecified. Next.js with TypeScript is the intended frontend; no frontend exists here. Intended architecture: modular monolith.
-
-## Repository organization
-
-- `src/main/java/com/buildat/`: application entry point only.
-- `src/main/resources/application.yaml`: environment-based datasource, Hibernate validation, disabled open-in-view, enabled Flyway.
-- `src/main/resources/db/migration/V1__init.sql`: empty initial migration; establishes no domain schema.
-- `src/test/java/com/buildat/`: one `@SpringBootTest` context-load test.
-- `.mvn/`, `mvnw`, `mvnw.cmd`: Maven wrapper.
-- `docs/`: authoritative product, domain, architecture, business and decision documents.
-- `target/`: ignored generated output; its presence does not prove the current checkout builds.
-
-## Local setup and verification
-
-Prerequisites inferred from checked-in configuration: JDK 25 with `JAVA_HOME` configured, an accessible PostgreSQL database, and network access for Maven distribution/dependency downloads when not cached. Installed JDK, PostgreSQL availability and build success have not been verified. A separate Maven installation is unnecessary when using the wrapper.
-
-Provide these environment variables to the process, using local values that are never committed:
-
-- `DATABASE_URL`: PostgreSQL JDBC URL, for example `jdbc:postgresql://localhost:5432/buildat`.
-- `DATABASE_USERNAME`: local database user.
-- `DATABASE_PASSWORD`: local database password.
-
-The database must already exist and the user must have the permissions needed for migrations. There is no provisioning script or container configuration. TODO: choose a supported PostgreSQL version and document reproducible local provisioning and isolated test database setup. `.env` files are ignored but no `.env` loader is configured; set process environment variables or use an IDE run configuration.
-
-Commands supported by the checked-in wrapper, POM and test source:
-
-| Purpose | PowerShell / Windows | POSIX shell |
+| Purpose | POSIX shell | PowerShell / Windows |
 | --- | --- | --- |
-| Inspect Maven/JDK | `.\mvnw.cmd --version` | `./mvnw --version` |
-| Run backend | `.\mvnw.cmd spring-boot:run` | `./mvnw spring-boot:run` |
-| Run current test suite | `.\mvnw.cmd test` | `./mvnw test` |
-| Maven verification lifecycle | `.\mvnw.cmd verify` | `./mvnw verify` |
+| Maven/JDK | `sh mvnw --version` | `.\mvnw.cmd --version` |
+| Unit and MVC tests, no database/container | `sh mvnw --batch-mode test` | `.\mvnw.cmd --batch-mode test` |
+| Unit + PostgreSQL/HTTP integration tests | `sh mvnw --batch-mode verify` | `.\mvnw.cmd --batch-mode verify` |
+| Normal development startup | `sh mvnw spring-boot:run` | `.\mvnw.cmd spring-boot:run` |
 
-These commands are established from repository files, not execution results. Startup and the current context test depend on datasource configuration and PostgreSQL access. `verify` has no project-specific acceptance gate configured beyond the Maven lifecycle. Do not use a production database for local runs or tests. TODO: establish isolated integration tests and confirm clean-checkout execution. No frontend setup command is available.
+Tests pin `postgres:17.11`, matching the user-confirmed development database version. Review the pin before changing the hosted major. Missing Docker fails integration tests; tests do not skip or use a hosted database. See the [runbook](docs/FOUNDATION.md).
+
+For normal development startup, supply `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD` in the process environment or an unshared IDE configuration. Do not paste secrets into chat or commit them. `.env` is ignored but is not automatically loaded by Spring. Hosted JDBC must use certificate/hostname verification (`sslmode=verify-full` and the provider CA through `sslrootcert`); use a direct connection or verified session pooler. Default Hikari maximum is 5 (`DATABASE_POOL_MAX_SIZE`), minimum idle 1, acquisition timeout 5 seconds.
+
+Ordinary startup **does not run Flyway**. The user operates hosted migrations separately with dedicated migration credentials after inspecting existing history. Hibernate stays `validate`, open-in-view stays disabled. V1 is unchanged and empty. No hosted migration command/tool is provided yet; migration variables are not implicitly wired to Spring. Do not start against Supabase to substitute for isolated verification.
+
+Only GET/HEAD `/actuator/health/liveness` and `/actuator/health/readiness` are public. They expose status only; readiness includes the database. Other routes are denied, including aggregate health, operational endpoints and login. Errors use `application/problem+json` with a stable `code` and `requestId`; all requests receive a server-generated `X-Request-ID`. No form login, Basic authentication or API sessions are enabled.
 
 ## Documentation
 
@@ -66,4 +38,4 @@ These commands are established from repository files, not execution results. Sta
 | [BUSINESS.md](docs/BUSINESS.md) | Commercial hypotheses and future funding constraints |
 | [DECISIONS.md](docs/DECISIONS.md) | Accepted, proposed and deferred decisions |
 
-Read the roadmap and relevant documents before implementation. Existing ignored `HELP.md`, when present, contains generated Spring/Maven references and remains unchanged.
+Read the roadmap and relevant documents before implementation. The [foundation runbook](docs/FOUNDATION.md) records setup, validation and current blockers. Existing ignored `HELP.md`, when present, contains generated Spring/Maven references and remains unchanged.
