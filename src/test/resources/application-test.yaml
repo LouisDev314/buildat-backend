@@ -6,3 +6,12 @@ spring:
     password: unused
   flyway:
     enabled: true
+
+buildat:
+  auth:
+    project-url: https://test.invalid
+    issuer: https://test.invalid/auth/v1
+    jwks-uri: https://test.invalid/auth/v1/.well-known/jwks.json
+    audience: authenticated
+    algorithms: RS256
+    publishable-key: sb_publishable_test_only

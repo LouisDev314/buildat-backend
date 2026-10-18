@@ -1,0 +1,11 @@
+spring:
+  flyway:
+    enabled: false
+buildat:
+  docs:
+    enabled: false
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

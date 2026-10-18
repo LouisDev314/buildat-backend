@@ -65,8 +65,12 @@ public class Problems {
     }
 
     public void write(HttpServletRequest request, HttpServletResponse response, int status) throws IOException {
+        write(request, response, status, code(status));
+    }
+
+    public void write(HttpServletRequest request, HttpServletResponse response, int status, String code) throws IOException {
         response.setStatus(status);
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-        mapper.writeValue(response.getOutputStream(), create(status, code(status), detail(status), request));
+        mapper.writeValue(response.getOutputStream(), create(status, code, detail(status), request));
     }
 }

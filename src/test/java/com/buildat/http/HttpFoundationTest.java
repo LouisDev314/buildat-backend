@@ -16,9 +16,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = TestEndpoints.Controller.class, excludeAutoConfiguration =
         org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration.class)
-@Import({SecurityConfiguration.class, Problems.class, RequestIdFilter.class,
+@Import({SecurityConfiguration.class, com.buildat.auth.SecurityProblems.class, Problems.class, RequestIdFilter.class,
         ApiExceptionHandler.class, ProblemErrorController.class, TestEndpoints.class})
 class HttpFoundationTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    org.springframework.security.oauth2.jwt.JwtDecoder decoder;
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper mapper;
 
@@ -63,7 +65,7 @@ class HttpFoundationTest {
 
     @Test
     void evenAuthenticatedUsersHaveNoImplicitPrivileges() throws Exception {
-        mvc.perform(get("/api/v1/me").with(user("builder")))
+        mvc.perform(get("/api/v1/unlisted").with(user("builder")))
                 .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("ACCESS_DENIED"));
     }
 

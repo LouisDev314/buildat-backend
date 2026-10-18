@@ -43,11 +43,11 @@ class BuildatServerApplicationIT {
     @Test
     @org.junit.jupiter.api.Order(1)
     void migrationIsAppliedOnceAndHibernateRemainsValidationOnly() {
-        assertThat(flyway.info().applied()).hasSize(1);
+        assertThat(flyway.info().applied()).hasSize(2);
         assertThat(flyway.info().applied()[0].getVersion().getVersion()).isEqualTo("1");
         assertThat(flyway.migrate().migrationsExecuted).isZero();
         assertThat(flyway.validateWithResult().validationSuccessful).isTrue();
-        assertThat(entities.getMetamodel().getEntities()).isEmpty();
+        assertThat(entities.getMetamodel().getEntities()).hasSize(1);
         assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
         assertThat(environment.getProperty("spring.jpa.open-in-view")).isEqualTo("false");
     }

@@ -2,7 +2,36 @@
 
 Authoritative living roadmap, inspected and updated 2026-10-18. Read [AGENTS.md](AGENTS.md) before changes. [MVP.md](docs/MVP.md) owns behavior, [DOMAIN.md](docs/DOMAIN.md) owns invariants, [ARCHITECTURE.md](docs/ARCHITECTURE.md) owns engineering constraints and [DECISIONS.md](docs/DECISIONS.md) owns decision status. Update this file with evidence whenever a gate changes; file presence alone is not completion.
 
-## Current observed state — 2026-10-18
+## Current Phase 2 state — 2026-10-18
+
+User authorized repository implementation of the Phase 2 authentication/internal-account plan. Implementation began with clean Git status. No hosted database/Auth request, provider setting change, deployment, commit or push is authorized or performed.
+
+- Added Boot-managed OAuth2 Resource Server with explicit trusted JWKS/asymmetric algorithms, issuer/audience/time/identity validation, permanent-user policy, no metadata authorities and compatible security Problem Details.
+- Added minimal account ownership under `com.buildat.account`, unique issuer/subject mapping, standing checks, one-time provider confirmation verification for initial creation and transaction-safe concurrent bootstrap. Existing mappings never resurrect or change timestamps on retries. GET never provisions.
+- Added POST bootstrap and GET/HEAD me, scoped requestId/data success advice and springdoc 3.1.1 with runtime/generated-schema coverage. Default/remote/production docs stay disabled; local docs bind to loopback.
+- V1 remains unchanged and empty. V2 is an offline-prepared candidate applied only to disposable PostgreSQL 17.11. Hosted history/version/roles/exposure/TLS and exact hosted SQL authorization remain prerequisites. No hosted activation is claimed.
+- Default Flyway remains disabled. The explicit local-development profile wires separate migration credentials and verified history schema; pending SQL runs automatically only after `BUILDAT_LOCAL_MIGRATIONS_APPROVED=true`. Local is the single shared-development authority, Northflank never independently migrates, and production's future dedicated release step is documentation only.
+- PostgreSQL row locking requires UPDATE on at least one column. The runtime group therefore receives only UPDATE(updated_at) in addition to SELECT/INSERT and RLS policies. Real HTTP tests use the restricted runtime login; identity/standing updates, DELETE and DDL are denied. See D26.
+- Initial compilation/test-fixture and contract failures were corrected during development. Final validation evidence is recorded below; test-only role creation and failing migration fixtures never enter production locations.
+
+### Phase 2 validation evidence
+
+| Exact command/check | Final outcome |
+| --- | --- |
+| `sh mvnw --batch-mode dependency:tree` | PASS; Security 7.1.1, springdoc 3.1.1, Boot-managed Jackson 2.21.5 and 3.1.5; no AI/MCP modules added |
+| `sh mvnw --batch-mode -Dtest=JwtSecurityTest,AccountServiceTest,ApiContractTest test` | PASS: 12 tests, zero failures/errors/skips |
+| `sh mvnw --batch-mode -Dit.test=AccountPersistenceIT,AuthenticationApiIT,BuildatServerApplicationIT verify` | PASS: 25 unit/MVC + 13 integration tests, zero failures/errors/skips |
+| `sh mvnw --batch-mode verify` | PASS: 25 unit/MVC + 14 integration tests, zero failures/errors/skips; includes generated OpenAPI/Swagger checks |
+| `git diff --exit-code HEAD -- src/main/resources/db/migration/V1__init.sql` | PASS; zero-byte V1 identical to HEAD |
+| `git diff --check` and `git diff --cached --check` | PASS; no staged changes |
+| Python local Markdown file-target check | PASS across README, PLANS, AGENTS and docs |
+| Final status/diff review | Intended Phase 2 source/configuration/migration/test/docs only; no unrelated pre-existing work |
+
+The first sandboxed Maven dependency attempt could not write the normal cache; approved retry succeeded. Docker access for disposable tests succeeded with required sandbox access. Early test failures (fixture imports, challenge/HEAD expectations and outage-test ordering) were corrected. Real DB outage exposed a Hibernate rollback wrapper with a pool-generated SQLException lacking SQLSTATE; the handler now distinguishes JDBC transaction/connection failure from unrelated persistence errors and returns 503. Deliberate migration failure, uniqueness violation and database shutdown tests produce expected framework diagnostics. No live Supabase verification was run.
+
+The isolated Phase 2 repository gate is complete. Hosted activation remains incomplete and separately authorized; the next task below is intentionally user-operated.
+
+## Historical Phase 1 completion evidence — 2026-10-18
 
 - User authorized the revised plan's **first backend-foundation milestone**. Auth, account/domain features, frontend, success wrapping/springdoc and deployment remain later work. Accepted direction and superseded proposals are recorded in [DECISIONS.md](docs/DECISIONS.md), D14–D21.
 - Implementation started with a clean Git working tree. The attached plan's historical staged Dockerfile was absent; no Dockerfile was created or changed. No unrelated work was overwritten and no commit/push was made.
@@ -26,13 +55,14 @@ Authoritative living roadmap, inspected and updated 2026-10-18. Read [AGENTS.md]
 
 ## Delivery order and acceptance gates
 
-Phases below are planned except the documentation authored in phase 0. Ordering is a dependency guide, not a calendar estimate. Trust, authorization and integrity apply from the first slice; phase 8 consolidates safety operations rather than postponing protection.
+Phases 0–2 have repository implementation evidence; later feature gates remain planned. Hosted activation is a separate incomplete gate. Ordering is a dependency guide, not a calendar estimate. Trust, authorization and integrity apply from the first slice; phase 8 consolidates safety operations rather than postponing protection.
 
 | Phase | Prioritized work and dependencies | Acceptance gate |
 | --- | --- | --- |
 | 0. Documentation foundation | Establish all requested docs; distinguish evidence, direction and hypotheses; preserve user work. | Nine docs exist, local links resolve, consistency review and diff checks pass, changed files reported; no implementation changes. |
 | 1. Backend foundation | **First milestone implemented and isolated gate passed.** Explicit denial, safe probes, correlation/errors, Testcontainers/Failsafe, manual hosted migrations and updated decisions. No Auth/domain tables. Depends on 0. | Java/wrapper and Docker work; 7 unit/MVC and 4 container/HTTP tests pass via `verify`. V1 applies once/revalidates unchanged. No domain schema or hosted setup is claimed. |
-| 2. Accounts and profiles | Implement accepted Supabase local-JWT integration, issuer/subject account bootstrap and current standing checks before profile ownership; skills/interests, availability, experience and portfolio presentation. Resolve taxonomy and visibility first. Depends on 1. | Own-profile edit and permitted public read work; private data and other-user writes are blocked; validation and persistence tests pass. |
+| 2. Authentication and internal accounts | Supabase local-JWT validation, provider-verified idempotent account bootstrap, authoritative standing, account HTTP contract and local OpenAPI. Backend only. | Isolated JWT/API/persistence/concurrency/runtime-role and migration checks pass; hosted activation remains separately user-operated. See current evidence above. |
+| 2b. Builder profiles | Subsequent milestone: profile ownership, visibility, skills/interests, availability, experience and portfolio presentation. Resolve taxonomy/privacy before design. Depends on 2. | Own-profile edit and permitted public read work; private data and other-user writes are blocked; validation and persistence tests pass. |
 | 3. Projects and roles | Establish accountable owner, minimum publication requirements, team view, scope/stage/evidence and openings with explicit disclosures. Depends on 2 and agreed project authority. | Publish/edit/close flows enforce management rights and complete disclosures; public views expose only permitted content; closed openings reject new applications. |
 | 4. Applications and membership | Decide pending uniqueness, reapplication, role closure effects, capacity and multiple-role membership; implement apply, withdraw, decline, accept, departure/removal and history. Depends on 3. | Atomic acceptance/membership; racing requests cannot duplicate active participation, accept withdrawn applications or exceed agreed capacity; private application and authority checks pass. |
 | 5. Deterministic discovery | Agree filters, missing-value behavior and compatibility explanation; implement PostgreSQL queries, stable ordering/pagination and relevant indexes. Depends on profiles and published projects/roles; use phase 4 outcomes when needed. | Repeated inputs yield explainable results; hidden/closed content is excluded according to policy; filter/pagination tests and representative query checks pass without dedicated search infrastructure. |
@@ -45,12 +75,12 @@ Phases below are planned except the documentation authored in phase 0. Ordering 
 
 ## Outstanding decisions and risks
 
-Hosted Flyway history, actual database roles/grants, Data API isolation and verified TLS remain user-operated setup gates before hosted migrations/startup. This work connected to no hosted database and used no provider credentials. Testcontainers covers vanilla PostgreSQL, not Supabase-specific services/policies. Runtime schema validation has no production entities yet.
+Hosted Flyway history, actual database roles/grants, Data API isolation and verified TLS remain user-operated setup gates before hosted migrations/startup. This work connected to no hosted database and used no provider credentials. Testcontainers covers vanilla PostgreSQL, not Supabase-specific services/policies. Hibernate now validates the account entity on isolated PostgreSQL; this does not verify the hosted schema.
 
-Auth provider direction is accepted but no JWT validation, account-standing enforcement or Auth endpoints exist. Before Auth implementation, obtain trusted non-secret issuer/JWKS/audience and actual signing/token shape, approve bootstrap/standing behavior and use stubbed providers for tests. Short token lifetime and sign-out scope require operator review; provider revocation/deletion may leave valid JWTs usable until expiry.
+Phase 2 repository implementation does not establish hosted Auth settings. Before hosted activation, the user must verify exact issuer/JWKS/audience, current asymmetric signing mode and token shape, confirmation settings and a controlled user. Token lifetime/sign-out choices require operator review; provider deletion/revocation retains documented expiry/cache windows. The one-time lookup confirms provider state, not historical mailbox verification for auto-confirmed identities.
 
 Future gates still need feature action matrices, skills/publication policy, application uniqueness/capacity/reapplication, evidence review, notification delivery, retention/moderation and alpha targets. AWS compute/TLS and frontend repository location remain deferred. Do not turn proposals into schema defaults. No infrastructure is needed to compensate for unvalidated demand.
 
 ## Next task
 
-Define and implement the **Auth milestone contract and isolated tests** once the user supplies the designated project's non-secret issuer, JWKS URI, expected audience and signing/token shape: local framework JWT validation, unique issuer/subject account mapping, fail-closed standing checks and idempotent bootstrap with one-time provider verification. First inspect hosted migration history before preparing an additive account migration; the user performs hosted changes. No profile auto-provisioning, frontend or deployment scope is implied.
+**User-only hosted readiness and artifact review:** inspect designated development project/history/V1, roles/grants/exposure/TLS and signing/confirmation settings using the ordered [Auth runbook](docs/AUTHENTICATION.md). Review exact V2 before separately authorizing hosted execution and local migration activation. Stop on conflicts. No profile, frontend, deployment or provider-change work is implied.

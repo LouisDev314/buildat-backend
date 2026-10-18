@@ -12,6 +12,7 @@ public class PostgresTestConfiguration {
     @ServiceConnection
     PostgreSQLContainer postgres() {
         // User verified the designated hosted database as PostgreSQL 17.11 on 2026-10-18.
-        return new PostgreSQLContainer(DockerImageName.parse("postgres:17.11"));
+        return new PostgreSQLContainer(DockerImageName.parse("postgres:17.11"))
+                .withInitScript("database-test-roles.sql");
     }
 }

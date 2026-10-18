@@ -24,6 +24,7 @@ public class TestEndpoints {
     }
 
     @RestController
+    @com.buildat.http.ApplicationJsonApi
     public static class Controller {
         public record Input(@Size(min = 3) String name) { }
 
@@ -36,6 +37,18 @@ public class TestEndpoints {
         @GetMapping("/test/servlet-error")
         public void servletError(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
             response.sendError(500, "secret-container-error");
+        }
+
+        @GetMapping("/test/wrapped")
+        public com.buildat.http.ApiResponse<java.util.Map<String, String>> wrapped(jakarta.servlet.http.HttpServletRequest request) {
+            return new com.buildat.http.ApiResponse<>(com.buildat.http.RequestIdFilter.requestId(request), java.util.Map.of("value", "ok"));
+        }
+
+        @GetMapping("/test/download")
+        public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> download() {
+            return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                    .header("Content-Disposition", "attachment; filename=test.txt")
+                    .body(new org.springframework.core.io.ByteArrayResource(new byte[]{1, 2, 3}));
         }
 
         @GetMapping("/test/empty")

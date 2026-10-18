@@ -14,7 +14,7 @@ spring:
       ddl-auto: validate
     open-in-view: false
   flyway:
-    # Hosted migrations are a separate, user-operated step.
+    # Default/deployment runtimes never migrate. Local activation requires the reviewed setup gate.
     enabled: false
     clean-disabled: true
     baseline-on-migrate: false
@@ -50,3 +50,25 @@ server:
     include-binding-errors: never
     include-stacktrace: never
     include-exception: false
+
+# No project defaults: a missing or inconsistent Auth configuration fails startup.
+buildat:
+  auth:
+    project-url: ${SUPABASE_URL}
+    issuer: ${SUPABASE_ISSUER}
+    jwks-uri: ${SUPABASE_JWKS_URI}
+    audience: authenticated
+    signing-algorithms:
+      - ES256
+    publishable-key: ${SUPABASE_PUBLISHABLE_KEY}
+  docs:
+    enabled: false
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+    persist-authorization: false
+  ai:
+    mcp:
+      enabled: false

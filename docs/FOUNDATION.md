@@ -1,6 +1,6 @@
 # Backend foundation runbook
 
-Implemented 2026-10-18 under the revised plan's first milestone. [PLANS.md](../PLANS.md) owns gates and one next task; [DECISIONS.md](DECISIONS.md) distinguishes accepted direction from implementation.
+Phase 1 implemented 2026-10-18. **Current Phase 2 startup/Auth/migration instructions are in [AUTHENTICATION.md](AUTHENTICATION.md)**; the Phase 1 setup/policy sections below are retained as historical evidence and are not current activation instructions. [PLANS.md](../PLANS.md) owns gates and one next task; [DECISIONS.md](DECISIONS.md) distinguishes accepted direction from implementation.
 
 ## Prerequisites and commands
 
@@ -21,7 +21,7 @@ Start a compatible Docker engine before `verify`. Missing Docker is a visible fa
 
 The final outage test stops its own disposable database after the checks that need it. Expect framework database-health warnings in this test. Readiness must fail while liveness stays healthy. No container reuse or shared database is configured.
 
-## Normal hosted development — user operated
+## Historical Phase 1 hosted setup — revised by Phase 2
 
 Use the designated Supabase development project, with synthetic data and no concurrent migration experiments. Production will need a separate project. No local PostgreSQL server or Compose stack is required.
 
@@ -44,7 +44,7 @@ sh mvnw spring-boot:run
 
 Run this only after the user has verified the hosted environment; it was not used as validation in this task. Current implementation has no Auth or domain API. All ordinary routes are denied except the two probes.
 
-## Migration ownership and safety
+## Historical Phase 1 migration policy — superseded in part
 
 Normal startup sets `spring.flyway.enabled=false`. Hibernate stays `validate`; open-in-view stays disabled. Testcontainers enables Flyway only for disposable databases. V1 remains empty and unchanged.
 
@@ -52,7 +52,7 @@ Before the first hosted migration, the user must inspect actual schemas/history/
 
 No hosted migration runner/command or grants are implemented in this milestone. Proposed `FLYWAY_URL`, `FLYWAY_USER`, `FLYWAY_PASSWORD` are **not wired** to runtime Spring configuration. The user executes hosted changes after artifact review. Future schema work should isolate application objects from Data API/browser access, restrict default privileges and evaluate RLS separately from SQL grants and Spring authorization.
 
-## HTTP contract in this milestone
+## Historical Phase 1 HTTP contract
 
 | Route | Public behavior |
 | --- | --- |
@@ -68,7 +68,7 @@ Security, firewall, MVC and servlet-dispatch errors use `application/problem+jso
 
 There is no Auth mechanism: route denial is a safe baseline, not proof of product authorization. Form login, Basic and API sessions are disabled; generated local users are excluded. Supabase Auth, account tables/standing, bearer challenges and object authorization come next. Success response advice and springdoc wait for the first real application JSON API, whose accepted format is `{ "requestId": "...", "data": ... }`.
 
-## Validation evidence — 2026-10-18
+## Historical Phase 1 validation evidence — 2026-10-18
 
 | Exact command/check | Result |
 | --- | --- |
@@ -89,3 +89,9 @@ There is no Auth mechanism: route denial is a safe baseline, not proof of produc
 Initial compilation/fixture and integration ordering failures were corrected before the passing runs. Maven's JDK agent warnings come from the existing test framework/Mockito and are not skipped tests. Full verification proves clean isolated startup and migration behavior against PostgreSQL 17.11; it does not prove domain schema correctness (there are no production entities), Supabase Auth, hosted privileges/TLS/history, packaging startup, deployment or production readiness.
 
 No hosted database/service was contacted, no provider configuration changed, and no deployment, commit or push occurred. These checks remain outside this milestone. The [architecture](ARCHITECTURE.md) records accepted future boundaries; [decision register](DECISIONS.md) retains superseded rationale.
+
+## Phase 2 current operational policy
+
+Default/deployment startup retains Flyway disabled, Hibernate validation and disabled open-in-view. Local automatic migration is now supported only through the explicit local-development profile, separate credentials, verified history schema and `BUILDAT_LOCAL_MIGRATIONS_APPROVED=true` after hosted verification and exact SQL authorization. Northflank is not a competing runner. Production's future release job will migrate automatically once; replicas will not.
+
+V1 is unchanged; V2 creates minimal private accounts and RLS/grants. Tests establish V1→V2 migration, nonempty entity validation, runtime-role bootstrap, concurrency, rollback and HTTP contracts on disposable PostgreSQL. They do not establish hosted compatibility or settings. Follow the ordered [user-only Auth setup](AUTHENTICATION.md#ordered-user-only-setup) before any hosted activation. Final Phase 2 commands/results are recorded in [PLANS.md](../PLANS.md).

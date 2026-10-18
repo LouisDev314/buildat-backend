@@ -1,10 +1,10 @@
 # Domain model
 
-This document owns conceptual relationships and invariants, not a database or endpoint specification. All domain implementation is planned. Rules here are accepted direction unless marked proposed or unresolved; [DECISIONS.md](DECISIONS.md) tracks remaining choices.
+This document owns conceptual relationships and invariants, not a database or endpoint specification. Minimal internal accounts are implemented in Phase 2; the remaining domain implementation is planned. Rules here are accepted direction unless marked proposed or unresolved; [DECISIONS.md](DECISIONS.md) tracks remaining choices.
 
-## Identity boundary (accepted direction, not implemented)
+## Identity boundary (Phase 2 implemented; hosted activation pending)
 
-Supabase owns identity/session lifecycle. Buildat will own an internal issuer/subject mapping and current account standing independently of public profiles; email and client-supplied owner IDs are not authoritative identity keys. Protected operations must check standing and object permissions. Restricted/deleted mappings must not automatically recreate active accounts. Full retention/recovery, owner transfer, manager hierarchy and capacity policy remain deferred; no account or domain tables are added by the foundation. See revised decisions D14–D21 in [DECISIONS.md](DECISIONS.md).
+Supabase owns identity/session lifecycle. Buildat owns an internal issuer/subject mapping and current account standing independently of public profiles; email and client-supplied owner IDs are not authoritative identity keys. Protected operations must check standing and object permissions. Restricted/deleted mappings must not automatically recreate active accounts. Full retention/recovery, owner transfer, manager hierarchy and capacity policy remain deferred; Phase 2 adds only a minimal account table, separately from public profiles. ACTIVE may become SUSPENDED; ACTIVE/SUSPENDED may become DELETED. Repeated restriction is idempotent, with no reactivation in this slice. No restriction administration API or deletion workflow is exposed. See revised decisions D14–D26 in [DECISIONS.md](DECISIONS.md).
 
 ## Concepts and relationships
 
